@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { MapPin, Search, Grid3x3, Coffee, ShoppingCart, UtensilsCrossed, Locate, Map, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,11 @@ import { StoreCard } from "@/components/store-card";
 
 import type { Store, Category } from "@/lib/types";
 
-// Lazy load map component to avoid SSR issues
-const StoreMap = lazy(() => import("@/components/store-map").then(mod => ({ default: mod.StoreMap })));
+// Dynamic import map component to avoid SSR issues
+const StoreMap = dynamic(
+  () => import("@/components/store-map").then((mod) => mod.StoreMap),
+  { ssr: false }
+);
 
 const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   Grid3x3,

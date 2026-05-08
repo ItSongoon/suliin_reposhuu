@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, User, Phone, Mail, IdCard, Package, Calendar, Clock,
   MapPin, CheckCircle, XCircle, AlertTriangle, ShoppingBag, LogOut,
-  Edit3, Save, X, TrendingUp, CreditCard, Star,
+  Edit3, Save, X, TrendingUp, CreditCard, Star, Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,16 +18,19 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { useAuth } from "@/lib/auth-context";
 import { useOrders } from "@/lib/order-context";
+import { usePlans } from "@/lib/plan-context";
 import type { Order } from "@/lib/types";
 
 function ProfileContent() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const { getUserOrders } = useOrders();
+  const { getUserPlans } = usePlans();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ firstName: "", lastName: "", phone: "", email: "" });
 
   const orders = user ? getUserOrders(user.id) : [];
+  const plans = user ? getUserPlans(user.id) : [];
 
   // Stats
   const completedOrders = orders.filter((o) => o.status === "completed");
@@ -151,9 +154,10 @@ function ProfileContent() {
         <section className="py-8">
           <div className="container mx-auto px-4">
             <Tabs defaultValue="info" className="w-full">
-              <TabsList className="mb-6 grid w-full grid-cols-4">
+              <TabsList className="mb-6 grid w-full grid-cols-5">
                 <TabsTrigger value="info">Мэдээлэл</TabsTrigger>
                 <TabsTrigger value="orders">Захиалга</TabsTrigger>
+                <TabsTrigger value="plans">Төлөвлөгөө</TabsTrigger>
                 <TabsTrigger value="missed">Алгассан</TabsTrigger>
                 <TabsTrigger value="stats">Тоон мэдээ</TabsTrigger>
               </TabsList>
@@ -313,6 +317,62 @@ function ProfileContent() {
                               {order.missedPickups > 0 && (
                                 <p className="text-xs text-amber-600">{order.missedPickups}/3 алгассан</p>
                               )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Plans Tab */}
+              <TabsContent value="plans">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Calendar className="h-5 w-5" />Таны төлөвлөгөөнүүд</CardTitle>
+                    <CardDescription>{plans.length} төлөвлөгөө</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {plans.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <Calendar className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                        <p className="mt-3 text-muted-foreground">Хадгалсан төлөвлөгөө байхгүй байна</p>
+                        <Link href="/planner" className="mt-4 inline-block"><Button size="sm">Төлөвлөгөө гаргах</Button></Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {plans.map((plan) => (
+                          <div key={plan.id} className="rounded-lg border border-border p-4">
+                            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="font-semibold text-foreground">
+                                  {formatDate(plan.createdAt)} -ийн төлөвлөгөө
+                                </p>
+                                <div className="mt-1 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{plan.totalTime} мин</span>
+                                  <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5" />{formatPrice(plan.totalCost)}</span>
+                                  <span className="flex items-center gap-1">Төсөв: {formatPrice(plan.budget)}</span>
+                                </div>
+                              </div>
+                              <Button variant="outline" size="sm" asChild>
+                                <Link href="/planner">
+                                  Үзэх
+                                </Link>
+                              </Button>
+                            </div>
+                            
+                            <div className="space-y-2 rounded-lg bg-secondary/30 p-3">
+                              {plan.schedule.map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-primary" />
+                                    <span>{item.from} <span className="text-muted-foreground">({item.departureTime})</span></span>
+                                    <ArrowLeft className="h-3 w-3 rotate-180 text-muted-foreground mx-1" />
+                                    <span>{item.to} <span className="text-muted-foreground">({item.arrivalTime})</span></span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         ))}

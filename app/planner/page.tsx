@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, lazy, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   Plus,
@@ -22,18 +23,24 @@ import { Label } from "@/components/ui/label";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
+import { useAuth } from "@/lib/auth-context";
+import { usePlans } from "@/lib/plan-context";
 import type { TransportType } from "@/lib/types";
 
-// Lazy load map component
-const RouteMap = lazy(() => import("@/components/route-map").then(mod => ({ default: mod.RouteMap })));
+// Dynamic import map component to avoid SSR issues with Leaflet
+const RouteMap = dynamic(
+  () => import("@/components/route-map").then((mod) => mod.RouteMap),
+  { ssr: false }
+);
 
-interface Destination {
+export interface Destination {
   id: string;
   name: string;
   time: string;
 }
 
-interface PlanResult {
+export interface PlanResult {
+  id?: string;
   destinations: Destination[];
   transport: TransportType;
   budget: number;
@@ -63,6 +70,9 @@ const transportOptions: {
 ];
 
 function PlannerContent() {
+  const { user } = useAuth();
+  const { savePlan, getLatestPlan } = usePlans();
+
   const [destinations, setDestinations] = useState<Destination[]>([
     { id: "1", name: "", time: "09:00" },
   ]);
@@ -70,6 +80,17 @@ function PlannerContent() {
   const [budget, setBudget] = useState(50000);
   const [planResult, setPlanResult] = useState<PlanResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Load previous plan if exists
+  useEffect(() => {
+    const latestPlan = getLatestPlan();
+    if (latestPlan) {
+      setPlanResult(latestPlan);
+      setDestinations(latestPlan.destinations);
+      setTransport(latestPlan.transport);
+      setBudget(latestPlan.budget);
+    }
+  }, [getLatestPlan]);
 
   const addDestination = () => {
     const lastTime = destinations[destinations.length - 1]?.time || "09:00";
@@ -137,14 +158,23 @@ function PlannerContent() {
         totalCost += cost;
       }
 
-      setPlanResult({
+      const result = {
         destinations: validDestinations,
         transport,
         budget,
         totalTime,
         totalCost,
         schedule,
+      };
+
+      setPlanResult(result);
+      
+      // Save plan to context (which saves to localStorage)
+      savePlan({
+        ...result,
+        userId: user?.id, // attach user if logged in
       });
+
       setIsCalculating(false);
     }, 1000);
   };
@@ -457,4 +487,3 @@ function PlannerContent() {
 export default function PlannerPage() {
   return <PlannerContent />;
 }
-

@@ -9,6 +9,20 @@ export interface User {
   createdAt: string;
 }
 
+export interface Business {
+  id: string;
+  registerNumber: string; // 7 digits
+  password: string;
+  name: string;
+  category: string;
+  phone: string;
+  email: string;
+  address: string;
+  openTime: string;
+  closeTime: string;
+  createdAt: string;
+}
+
 export interface Store {
   id: string;
   name: string;
@@ -91,4 +105,21 @@ export interface DailyPlan {
   items: ScheduleItem[];
   totalCost: number;
   totalTime: number;
+}
+
+export interface ProductReview {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  comment: string;
+  createdAt: string;
+}
+
+export interface StoreRating {
+  id: string;
+  storeId: string;
+  userId: string;
+  rating: number; // 0 to 5
+  createdAt: string;
 }

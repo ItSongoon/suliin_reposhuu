@@ -9,6 +9,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ProductCard } from "@/components/product-card";
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
+import { useReviews } from "@/lib/review-context";
 import type { Store, Product } from "@/lib/types";
 import storesData from "@/data/stores.json";
 
@@ -24,6 +26,8 @@ function StoreDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { itemCount, total } = useCart();
+  const { user } = useAuth();
+  const { getStoreRating, addStoreRating } = useReviews();
 
   useEffect(() => {
     // Find store from local data
@@ -54,6 +58,15 @@ function StoreDetailContent({ params }: { params: Promise<{ id: string }> }) {
     const now = new Date();
     const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
     return currentTime >= store.openTime && currentTime <= store.closeTime;
+  };
+
+  const currentRating = store ? getStoreRating(store.id) : { average: 0, count: 0 };
+  const displayRating = currentRating.count > 0 ? currentRating.average : store?.rating || 0;
+
+  const handleRate = (rating: number) => {
+    if (user && store) {
+      addStoreRating(store.id, user.id, rating);
+    }
   };
 
   if (isLoading) {
@@ -126,8 +139,28 @@ function StoreDetailContent({ params }: { params: Promise<{ id: string }> }) {
                     {store.phone}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 fill-accent text-accent" />
-                    {store.rating} үнэлгээ
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => handleRate(star)}
+                          disabled={!user}
+                          className={`focus:outline-none transition-colors ${
+                            user ? "cursor-pointer hover:text-accent" : "cursor-default"
+                          }`}
+                          title={user ? `${star} одоор үнэлэх` : "Нэвтэрч байж үнэлгээ өгнө үү"}
+                        >
+                          <Star 
+                            className={`h-5 w-5 ${
+                              star <= Math.round(displayRating) 
+                                ? "fill-accent text-accent" 
+                                : "text-primary-foreground/30 hover:fill-accent/50 hover:text-accent/50"
+                            }`} 
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <span>{displayRating} ({currentRating.count > 0 ? `${currentRating.count} хүн` : "Анхны үнэлгээ"})</span>
                   </div>
                 </div>
               </div>

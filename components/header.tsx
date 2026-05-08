@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, ShoppingCart, User, MapPin, Calendar, Package, UserCircle } from "lucide-react";
+import { Menu, X, ShoppingCart, User, MapPin, Calendar, Package, UserCircle, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
@@ -65,12 +65,20 @@ export function Header() {
               </Button>
             </Link>
           ) : (
-            <Link href="/auth">
-              <Button size="sm">
-                <User className="mr-2 h-4 w-4" />
-                Нэвтрэх
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/partner/auth">
+                <Button variant="ghost" size="sm" className="hidden lg:flex">
+                  <Store className="mr-2 h-4 w-4" />
+                  Байгууллага
+                </Button>
+              </Link>
+              <Link href="/auth">
+                <Button size="sm">
+                  <User className="mr-2 h-4 w-4" />
+                  Нэвтрэх
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
 
@@ -127,12 +135,20 @@ export function Header() {
                   </Button>
                 </div>
               ) : (
-                <Link href="/auth" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full" size="sm">
-                    <User className="mr-2 h-4 w-4" />
-                    Нэвтрэх / Бүртгүүлэх
-                  </Button>
-                </Link>
+                <div className="space-y-3">
+                  <Link href="/auth" onClick={() => setIsMenuOpen(false)}>
+                    <Button className="w-full" size="sm">
+                      <User className="mr-2 h-4 w-4" />
+                      Нэвтрэх / Бүртгүүлэх
+                    </Button>
+                  </Link>
+                  <Link href="/partner/auth" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full" size="sm">
+                      <Store className="mr-2 h-4 w-4" />
+                      Байгууллагын систем
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
           </div>
