@@ -8,7 +8,7 @@ const USERS_FILE = path.join(process.cwd(), "data", "users.json");
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { registerNumber } = body;
+    const { registerNumber, password } = body;
 
     // Read users
     const fileContent = await fs.readFile(USERS_FILE, "utf-8");
@@ -26,7 +26,17 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ user }, { status: 200 });
+    // Check password
+    if (user.password !== password) {
+      return NextResponse.json(
+        { error: "Нууц үг буруу байна." },
+        { status: 401 }
+      );
+    }
+
+    // Don't send password to client
+    const { password: _, ...safeUser } = user;
+    return NextResponse.json({ user: safeUser }, { status: 200 });
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

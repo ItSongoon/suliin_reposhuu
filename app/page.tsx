@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { AuthProvider } from "@/lib/auth-context";
-import { CartProvider } from "@/lib/cart-context";
+
 
 function HomePage() {
   const features = [
@@ -208,11 +207,6 @@ function HomePage() {
 }
 
 export default function Home() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <HomePage />
-      </CartProvider>
-    </AuthProvider>
-  );
+  return <HomePage />;
 }
+

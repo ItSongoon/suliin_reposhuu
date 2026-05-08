@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   Copy,
   Check,
+  XCircle,
+  Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,10 +25,81 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { CartProvider, useCart } from "@/lib/cart-context";
-import { OrderProvider, useOrders } from "@/lib/order-context";
+import { useAuth } from "@/lib/auth-context";
+import { useCart } from "@/lib/cart-context";
+import { useOrders } from "@/lib/order-context";
 import type { Order } from "@/lib/types";
+
+function CancelCountdown({ orderId }: { orderId: string }) {
+  const { getCancelTimeRemaining, cancelOrder, canCancelOrder } = useOrders();
+  const [timeLeft, setTimeLeft] = useState(getCancelTimeRemaining(orderId));
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const remaining = getCancelTimeRemaining(orderId);
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [orderId, getCancelTimeRemaining]);
+
+  const minutes = Math.floor(timeLeft / 60000);
+  const seconds = Math.floor((timeLeft % 60000) / 1000);
+  const progress = (timeLeft / (5 * 60 * 1000)) * 100;
+
+  const handleCancel = () => {
+    setIsCancelling(true);
+    const success = cancelOrder(orderId);
+    if (success) {
+      // Will be handled by parent
+    }
+    setIsCancelling(false);
+  };
+
+  if (timeLeft <= 0) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/30 p-4 text-sm text-muted-foreground">
+        <Timer className="h-4 w-4" />
+        <span>Цуцлах хугацаа дууссан</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium text-amber-800">
+          <Timer className="h-4 w-4" />
+          <span>Цуцлах боломжтой хугацаа</span>
+        </div>
+        <span className="font-mono text-lg font-bold text-amber-700">
+          {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+        </span>
+      </div>
+      {/* Progress bar */}
+      <div className="h-2 w-full overflow-hidden rounded-full bg-amber-200">
+        <div
+          className="h-full rounded-full bg-amber-500 transition-all duration-1000"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <Button
+        variant="destructive"
+        size="sm"
+        className="w-full"
+        onClick={handleCancel}
+        disabled={isCancelling || !canCancelOrder(orderId)}
+      >
+        <XCircle className="mr-2 h-4 w-4" />
+        {isCancelling ? "Цуцлаж байна..." : "Захиалга цуцлах"}
+      </Button>
+    </div>
+  );
+}
 
 function CartContent() {
   const router = useRouter();
@@ -112,7 +185,7 @@ function CartContent() {
     {} as Record<string, { store: (typeof items)[0]["store"]; items: typeof items }>
   );
 
-  // Order success with QR code
+  // Order success with QR code + cancel countdown
   if (completedOrder) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
@@ -208,6 +281,11 @@ function CartContent() {
                     {formatPrice(completedOrder.total)}
                   </span>
                 </div>
+              </div>
+
+              {/* Cancel Countdown */}
+              <div className="mt-6">
+                <CancelCountdown orderId={completedOrder.id} />
               </div>
 
               {/* Warning */}
@@ -462,13 +540,5 @@ function CartContent() {
 }
 
 export default function CartPage() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <OrderProvider>
-          <CartContent />
-        </OrderProvider>
-      </CartProvider>
-    </AuthProvider>
-  );
+  return <CartContent />;
 }

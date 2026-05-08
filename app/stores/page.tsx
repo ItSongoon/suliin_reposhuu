@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { StoreCard } from "@/components/store-card";
-import { AuthProvider } from "@/lib/auth-context";
-import { CartProvider } from "@/lib/cart-context";
+
 import type { Store, Category } from "@/lib/types";
 
 // Lazy load map component to avoid SSR issues
@@ -283,11 +282,6 @@ function StoresContent() {
 }
 
 export default function StoresPage() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <StoresContent />
-      </CartProvider>
-    </AuthProvider>
-  );
+  return <StoresContent />;
 }
+

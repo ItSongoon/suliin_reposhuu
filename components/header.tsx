@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, ShoppingCart, User, MapPin, Calendar, Package } from "lucide-react";
+import { Menu, X, ShoppingCart, User, MapPin, Calendar, Package, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
@@ -56,14 +56,14 @@ export function Header() {
             </Button>
           </Link>
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">
+            <Link href="/profile">
+              <Button variant="outline" size="sm" className="gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  {user.firstName.charAt(0)}
+                </div>
                 {user.firstName}
-              </span>
-              <Button variant="outline" size="sm" onClick={logout}>
-                Гарах
               </Button>
-            </div>
+            </Link>
           ) : (
             <Link href="/auth">
               <Button size="sm">
@@ -113,11 +113,16 @@ export function Header() {
             ))}
             <div className="border-t border-border pt-3">
               {user ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    {user.firstName} {user.lastName}
-                  </span>
-                  <Button variant="outline" size="sm" onClick={logout}>
+                <div className="space-y-3">
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 text-sm font-medium text-muted-foreground"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <UserCircle className="h-4 w-4" />
+                    Профайл ({user.firstName} {user.lastName})
+                  </Link>
+                  <Button variant="outline" size="sm" className="w-full" onClick={logout}>
                     Гарах
                   </Button>
                 </div>

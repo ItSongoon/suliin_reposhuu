@@ -14,12 +14,20 @@ function validateMongolianRegister(registerNumber: string): boolean {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { registerNumber, firstName, lastName, phone, email } = body;
+    const { registerNumber, firstName, lastName, phone, email, password } = body;
 
     // Validate register number
     if (!validateMongolianRegister(registerNumber)) {
       return NextResponse.json(
         { error: "Регистрийн дугаар буруу байна. Жишээ: РД98010123" },
+        { status: 400 }
+      );
+    }
+
+    // Validate password
+    if (!password || password.length < 4) {
+      return NextResponse.json(
+        { error: "Нууц үг хамгийн багадаа 4 тэмдэгт байх ёстой." },
         { status: 400 }
       );
     }
@@ -44,6 +52,7 @@ export async function POST(request: Request) {
     const newUser: User = {
       id: `user_${Date.now()}`,
       registerNumber: registerNumber.toUpperCase(),
+      password,
       firstName,
       lastName,
       phone,
@@ -55,7 +64,9 @@ export async function POST(request: Request) {
     data.users.push(newUser);
     await fs.writeFile(USERS_FILE, JSON.stringify(data, null, 2));
 
-    return NextResponse.json({ user: newUser }, { status: 201 });
+    // Don't send password to client
+    const { password: _, ...safeUser } = newUser;
+    return NextResponse.json({ user: safeUser }, { status: 201 });
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
@@ -64,3 +75,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ProductCard } from "@/components/product-card";
-import { AuthProvider } from "@/lib/auth-context";
-import { CartProvider, useCart } from "@/lib/cart-context";
+import { useCart } from "@/lib/cart-context";
 import type { Store, Product } from "@/lib/types";
 import storesData from "@/data/stores.json";
 
@@ -196,11 +195,5 @@ function StoreDetailContent({ params }: { params: Promise<{ id: string }> }) {
 }
 
 export default function StoreDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <StoreDetailContent params={params} />
-      </CartProvider>
-    </AuthProvider>
-  );
+  return <StoreDetailContent params={params} />;
 }

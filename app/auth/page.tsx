@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, User, Phone, Mail, IdCard } from "lucide-react";
+import { ArrowLeft, User, Phone, Mail, IdCard, Eye, EyeOff, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { CartProvider } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 
 function AuthForm() {
   const router = useRouter();
@@ -20,6 +19,8 @@ function AuthForm() {
 
   // Login form state
   const [loginRegister, setLoginRegister] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Register form state
   const [registerData, setRegisterData] = useState({
@@ -28,18 +29,22 @@ function AuthForm() {
     lastName: "",
     phone: "",
     email: "",
+    password: "",
   });
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    const success = await login(loginRegister);
+    const success = await login(loginRegister, loginPassword);
     if (success) {
       router.push("/stores");
     } else {
-      setError("Хэрэглэгч олдсонгүй. Эхлээд бүртгүүлнэ үү.");
+      setError("Регистрийн дугаар эсвэл нууц үг буруу байна.");
     }
     setIsLoading(false);
   };
@@ -53,6 +58,20 @@ function AuthForm() {
     const registerRegex = /^[А-ЯЁҮӨ]{2}\d{8}$/i;
     if (!registerRegex.test(registerData.registerNumber)) {
       setError("Регистрийн дугаар буруу байна. Жишээ: РД98010123");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate password
+    if (registerData.password.length < 4) {
+      setError("Нууц үг хамгийн багадаа 4 тэмдэгт байх ёстой.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate password confirmation
+    if (registerData.password !== registerConfirmPassword) {
+      setError("Нууц үг таарахгүй байна.");
       setIsLoading(false);
       return;
     }
@@ -111,6 +130,34 @@ function AuthForm() {
                         className="pl-10 uppercase"
                         required
                       />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Нууц үг</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="login-password"
+                        type={showLoginPassword ? "text" : "password"}
+                        placeholder="Нууц үг"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showLoginPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -228,6 +275,69 @@ function AuthForm() {
                     </div>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="register-password">Нууц үг *</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="register-password"
+                        type={showRegisterPassword ? "text" : "password"}
+                        placeholder="Нууц үг (4+ тэмдэгт)"
+                        value={registerData.password}
+                        onChange={(e) =>
+                          setRegisterData({
+                            ...registerData,
+                            password: e.target.value,
+                          })
+                        }
+                        className="pl-10 pr-10"
+                        required
+                        minLength={4}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showRegisterPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="register-confirm">Нууц үг давтах *</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="register-confirm"
+                        type={showRegisterConfirm ? "text" : "password"}
+                        placeholder="Нууц үг давтах"
+                        value={registerConfirmPassword}
+                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                        required
+                        minLength={4}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterConfirm(!showRegisterConfirm)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showRegisterConfirm ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
                   {error && (
                     <p className="text-sm text-destructive">{error}</p>
                   )}
@@ -246,11 +356,6 @@ function AuthForm() {
 }
 
 export default function AuthPage() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <AuthForm />
-      </CartProvider>
-    </AuthProvider>
-  );
+  return <AuthForm />;
 }
+

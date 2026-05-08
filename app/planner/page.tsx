@@ -21,8 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { AuthProvider } from "@/lib/auth-context";
-import { CartProvider } from "@/lib/cart-context";
+
 import type { TransportType } from "@/lib/types";
 
 // Lazy load map component
@@ -456,11 +455,6 @@ function PlannerContent() {
 }
 
 export default function PlannerPage() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <PlannerContent />
-      </CartProvider>
-    </AuthProvider>
-  );
+  return <PlannerContent />;
 }
+

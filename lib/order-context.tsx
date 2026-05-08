@@ -7,6 +7,9 @@ interface OrderContextType {
   orders: Order[];
   addOrder: (order: Omit<Order, "id" | "qrCode" | "missedPickups" | "penaltyAmount" | "isPenaltyPaid" | "createdAt">) => Order;
   updateOrderStatus: (orderId: string, status: Order["status"]) => void;
+  cancelOrder: (orderId: string) => boolean;
+  canCancelOrder: (orderId: string) => boolean;
+  getCancelTimeRemaining: (orderId: string) => number;
   markMissedPickup: (orderId: string) => void;
   payPenalty: (orderId: string) => void;
   getOrderById: (orderId: string) => Order | undefined;
@@ -14,6 +17,8 @@ interface OrderContextType {
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
+
+const CANCEL_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
 function generateQRCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -67,6 +72,35 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const canCancelOrder = (orderId: string): boolean => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return false;
+    if (order.status === "cancelled" || order.status === "completed" || order.status === "penalty") return false;
+
+    const elapsed = Date.now() - new Date(order.createdAt).getTime();
+    return elapsed < CANCEL_WINDOW_MS;
+  };
+
+  const getCancelTimeRemaining = (orderId: string): number => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return 0;
+
+    const elapsed = Date.now() - new Date(order.createdAt).getTime();
+    const remaining = CANCEL_WINDOW_MS - elapsed;
+    return Math.max(0, remaining);
+  };
+
+  const cancelOrder = (orderId: string): boolean => {
+    if (!canCancelOrder(orderId)) return false;
+
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId ? { ...order, status: "cancelled" as const } : order
+      )
+    );
+    return true;
+  };
+
   const markMissedPickup = (orderId: string) => {
     setOrders((prev) =>
       prev.map((order) => {
@@ -116,6 +150,9 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         orders,
         addOrder,
         updateOrderStatus,
+        cancelOrder,
+        canCancelOrder,
+        getCancelTimeRemaining,
         markMissedPickup,
         payPenalty,
         getOrderById,

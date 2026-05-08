@@ -6,7 +6,7 @@ import type { User } from "./types";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (registerNumber: string) => Promise<boolean>;
+  login: (registerNumber: string, password: string) => Promise<boolean>;
   register: (userData: Omit<User, "id" | "createdAt">) => Promise<boolean>;
   logout: () => void;
 }
@@ -26,12 +26,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (registerNumber: string): Promise<boolean> => {
+  const login = async (registerNumber: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ registerNumber }),
+        body: JSON.stringify({ registerNumber, password }),
       });
       
       if (response.ok) {
@@ -85,3 +85,4 @@ export function useAuth() {
   }
   return context;
 }
+

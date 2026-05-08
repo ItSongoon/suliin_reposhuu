@@ -1,3 +1,14 @@
 {
-  "users": []
+  "users": [
+    {
+      "id": "user_1778253914076",
+      "registerNumber": "УХ08221819",
+      "password": "Batmanlai@2",
+      "firstName": "Batmanlai",
+      "lastName": "Battsooj",
+      "phone": "88717298",
+      "email": "tulhuur9999@gmail.com",
+      "createdAt": "2026-05-08T15:25:14.076Z"
+    }
+  ]
 }

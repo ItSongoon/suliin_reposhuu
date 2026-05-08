@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -18,6 +18,7 @@ import {
   Calendar,
   QrCode,
   CreditCard,
+  Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,17 +32,82 @@ import {
 } from "@/components/ui/dialog";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { AuthProvider, useAuth } from "@/lib/auth-context";
-import { OrderProvider, useOrders } from "@/lib/order-context";
+import { useAuth } from "@/lib/auth-context";
+import { useOrders } from "@/lib/order-context";
 import type { Order } from "@/lib/types";
+
+function OrderCancelTimer({ orderId }: { orderId: string }) {
+  const { getCancelTimeRemaining, cancelOrder, canCancelOrder } = useOrders();
+  const [timeLeft, setTimeLeft] = useState(getCancelTimeRemaining(orderId));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const remaining = getCancelTimeRemaining(orderId);
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [orderId, getCancelTimeRemaining]);
+
+  if (timeLeft <= 0) return null;
+
+  const minutes = Math.floor(timeLeft / 60000);
+  const seconds = Math.floor((timeLeft % 60000) / 1000);
+  const progress = (timeLeft / (5 * 60 * 1000)) * 100;
+
+  return (
+    <div className="border-t border-amber-200 bg-amber-50 px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm text-amber-800">
+          <Timer className="h-4 w-4 shrink-0" />
+          <span>
+            Цуцлах боломж:{" "}
+            <span className="font-mono font-bold">
+              {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+            </span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="hidden h-1.5 w-20 overflow-hidden rounded-full bg-amber-200 sm:block">
+            <div
+              className="h-full rounded-full bg-amber-500 transition-all duration-1000"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => cancelOrder(orderId)}
+          >
+            <XCircle className="mr-1 h-3 w-3" />
+            Цуцлах
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function OrdersContent() {
   const router = useRouter();
   const { user } = useAuth();
-  const { getUserOrders, markMissedPickup, payPenalty, updateOrderStatus } = useOrders();
+  const { getUserOrders, markMissedPickup, payPenalty, updateOrderStatus, canCancelOrder } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Force re-render every second for countdown timers
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const orders = user ? getUserOrders(user.id) : [];
 
@@ -271,6 +337,11 @@ function OrdersContent() {
                           </div>
                         </div>
 
+                        {/* Cancel Timer - show if within 5 min window */}
+                        {canCancelOrder(order.id) && (
+                          <OrderCancelTimer orderId={order.id} />
+                        )}
+
                         {/* Penalty Warning */}
                         {order.status === "penalty" && (
                           <div className="border-t border-destructive/20 bg-destructive/10 px-4 py-3">
@@ -492,11 +563,5 @@ function OrdersContent() {
 }
 
 export default function OrdersPage() {
-  return (
-    <AuthProvider>
-      <OrderProvider>
-        <OrdersContent />
-      </OrderProvider>
-    </AuthProvider>
-  );
+  return <OrdersContent />;
 }
