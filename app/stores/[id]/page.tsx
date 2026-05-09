@@ -31,23 +31,48 @@ function StoreDetailContent({ params }: { params: Promise<{ id: string }> }) {
   const { getStoreRating, addStoreRating } = useReviews();
 
   useEffect(() => {
-    // Find store from local data
-    const foundStore = storesData.stores.find((s) => s.id === resolvedParams.id);
-    setStore(foundStore || null);
+    const id = resolvedParams.id;
 
-    // Fetch products for this store
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(`/api/products?storeId=${resolvedParams.id}`);
-        const data = await response.json();
-        setProducts(data.products);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
+    // First check stores.json
+    const foundStore = storesData.stores.find((s) => s.id === id) as Store | undefined;
+
+    if (foundStore) {
+      setStore(foundStore);
+      // Fetch from API (products.json)
+      fetch(`/api/products?storeId=${id}`)
+        .then(r => r.json())
+        .then(data => setProducts(data.products ?? []))
+        .catch(console.error)
+        .finally(() => setIsLoading(false));
+    } else {
+      // Check localStorage partner businesses
+      const bizDb = localStorage.getItem("zamzuur_business_db");
+      if (bizDb) {
+        const businesses = JSON.parse(bizDb);
+        const biz = businesses.find((b: any) => b.id === id);
+        if (biz) {
+          setStore({
+            id: biz.id,
+            name: biz.name,
+            category: biz.category,
+            address: biz.address,
+            lat: 47.9184,
+            lng: 106.9177,
+            rating: 5,
+            openTime: biz.openTime,
+            closeTime: biz.closeTime,
+            phone: biz.phone,
+            image: "",
+          });
+          const bizProducts = localStorage.getItem(`biz_products_${id}`);
+          if (bizProducts) {
+            const parsed = JSON.parse(bizProducts);
+            setProducts(parsed.map((p: any) => ({ ...p, storeId: id })));
+          }
+        }
       }
       setIsLoading(false);
-    };
-
-    fetchProducts();
+    }
   }, [resolvedParams.id]);
 
   const formatPrice = (price: number) => {
@@ -165,7 +190,7 @@ function StoreDetailContent({ params }: { params: Promise<{ id: string }> }) {
                           <p className="text-sm text-muted-foreground">{store.phone}</p>
                         </div>
                       </div>
-
+                      
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5 rounded-full bg-amber-500/10 p-2 text-amber-500">
                           <Star className="h-4 w-4 fill-current" />
