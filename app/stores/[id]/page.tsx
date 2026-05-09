@@ -2,9 +2,10 @@
 
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Star, Clock, Phone, ShoppingBag } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, Phone, ShoppingBag, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ProductCard } from "@/components/product-card";
@@ -100,78 +101,132 @@ function StoreDetailContent({ params }: { params: Promise<{ id: string }> }) {
 
       <main className="flex-1">
         {/* Store Header */}
-        <section className="bg-primary py-8">
+        <section className="relative bg-secondary/20 pb-12 pt-8">
           <div className="container mx-auto px-4">
             <Link
               href="/stores"
-              className="mb-4 inline-flex items-center gap-2 text-sm text-primary-foreground/70 hover:text-primary-foreground"
+              className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
               Дэлгүүрүүд руу буцах
             </Link>
 
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-primary-foreground md:text-3xl">
-                    {store.name}
-                  </h1>
-                  <Badge variant={isOpen() ? "secondary" : "outline"} className="text-xs">
-                    {isOpen() ? "Нээлттэй" : "Хаалттай"}
-                  </Badge>
-                </div>
+            <Card className="overflow-hidden border-border shadow-xl">
+              <div className="grid md:grid-cols-[1fr_350px] lg:grid-cols-[1fr_450px]">
+                {/* Store Info */}
+                <div className="flex flex-col justify-between p-6 sm:p-8">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-3xl font-bold text-primary-foreground shadow-inner">
+                        {store.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+                          {store.name}
+                        </h1>
+                        <div className="mt-2 flex items-center gap-2">
+                          <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
+                            {categoryLabels[store.category] || store.category}
+                          </Badge>
+                          <Badge variant={isOpen() ? "default" : "destructive"} className="text-xs">
+                            {isOpen() ? "Одоогоор нээлттэй" : "Хаалттай"}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
 
-                <Badge variant="outline" className="mt-3 border-primary-foreground/30 text-primary-foreground">
-                  {categoryLabels[store.category] || store.category}
-                </Badge>
+                    <div className="mt-8 grid gap-5 sm:grid-cols-2">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-secondary p-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Байршил</p>
+                          <p className="text-sm text-muted-foreground">{store.address}</p>
+                        </div>
+                      </div>
 
-                <div className="mt-4 space-y-2 text-sm text-primary-foreground/80">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    {store.address}
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-secondary p-2 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Цагийн хуваарь</p>
+                          <p className="text-sm text-muted-foreground">Өдөр бүр {store.openTime} - {store.closeTime}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-secondary p-2 text-muted-foreground">
+                          <Phone className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Утас</p>
+                          <p className="text-sm text-muted-foreground">{store.phone}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 rounded-full bg-amber-500/10 p-2 text-amber-500">
+                          <Star className="h-4 w-4 fill-current" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Үнэлгээ</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span className="font-bold text-foreground">{displayRating}</span>
+                            <span>({currentRating.count > 0 ? `${currentRating.count} хүн` : "Анхны үнэлгээ"})</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    {store.openTime} - {store.closeTime}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    {store.phone}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex">
+
+                  <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <Button size="lg" className="gap-2 rounded-full font-semibold shadow-md">
+                      <Navigation className="h-4 w-4" />
+                      Маршрут авах
+                    </Button>
+                    <div className="flex items-center gap-1 rounded-full border border-border px-4 py-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           onClick={() => handleRate(star)}
                           disabled={!user}
-                          className={`focus:outline-none transition-colors ${
-                            user ? "cursor-pointer hover:text-accent" : "cursor-default"
-                          }`}
+                          className={`focus:outline-none transition-transform hover:scale-110 ${user ? "cursor-pointer" : "cursor-default opacity-50"
+                            }`}
                           title={user ? `${star} одоор үнэлэх` : "Нэвтэрч байж үнэлгээ өгнө үү"}
                         >
-                          <Star 
-                            className={`h-5 w-5 ${
-                              star <= Math.round(displayRating) 
-                                ? "fill-accent text-accent" 
-                                : "text-primary-foreground/30 hover:fill-accent/50 hover:text-accent/50"
-                            }`} 
+                          <Star
+                            className={`h-5 w-5 ${star <= Math.round(displayRating)
+                                ? "fill-amber-500 text-amber-500"
+                                : "text-muted-foreground/30 hover:fill-amber-500/50 hover:text-amber-500/50"
+                              }`}
                           />
                         </button>
                       ))}
+                      <span className="ml-2 text-xs text-muted-foreground">Үнэлгээ өгөх</span>
                     </div>
-                    <span>{displayRating} ({currentRating.count > 0 ? `${currentRating.count} хүн` : "Анхны үнэлгээ"})</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Store Image Placeholder */}
-              <div className="flex h-32 w-32 items-center justify-center rounded-xl bg-primary-foreground/10">
-                <span className="text-5xl font-bold text-primary-foreground/30">
-                  {store.name.charAt(0)}
-                </span>
+                {/* Map Area */}
+                <div className="relative min-h-[300px] w-full bg-muted md:min-h-full border-t md:border-t-0 md:border-l border-border">
+                  <iframe
+                    title={`${store.name} map`}
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    scrolling="no"
+                    marginHeight={0}
+                    marginWidth={0}
+                    src={`https://maps.google.com/maps?q=${store.lat},${store.lng}&z=15&output=embed`}
+                    className="absolute inset-0 h-full w-full object-cover dark:invert-[90%] dark:hue-rotate-180"
+                  />
+                  {/* Overlay shadow for style */}
+                  <div className="pointer-events-none absolute inset-0 shadow-[inset_0_10px_20px_rgba(0,0,0,0.05)] md:shadow-[inset_10px_0_20px_rgba(0,0,0,0.05)]" />
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
         </section>
 

@@ -189,11 +189,11 @@ function ProfileContent() {
                           <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
                               <Label>Овог</Label>
-                              <Input value={editData.firstName} onChange={(e) => setEditData({ ...editData, firstName: e.target.value })} />
+                              <Input value={editData.lastName} onChange={(e) => setEditData({ ...editData, lastName: e.target.value })} />
                             </div>
                             <div className="space-y-2">
                               <Label>Нэр</Label>
-                              <Input value={editData.lastName} onChange={(e) => setEditData({ ...editData, lastName: e.target.value })} />
+                              <Input value={editData.firstName} onChange={(e) => setEditData({ ...editData, firstName: e.target.value })} />
                             </div>
                           </div>
                           <div className="space-y-2">
@@ -210,11 +210,11 @@ function ProfileContent() {
                           <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-1">
                               <Label className="flex items-center gap-2 text-muted-foreground"><User className="h-4 w-4" />Овог</Label>
-                              <p className="font-medium">{user.firstName}</p>
+                              <p className="font-medium">{user.lastName}</p>
                             </div>
                             <div className="space-y-1">
                               <Label className="text-muted-foreground">Нэр</Label>
-                              <p className="font-medium">{user.lastName}</p>
+                              <p className="font-medium">{user.firstName}</p>
                             </div>
                           </div>
                           <div className="space-y-1">
