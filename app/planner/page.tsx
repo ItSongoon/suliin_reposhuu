@@ -80,17 +80,29 @@ function PlannerContent() {
   const [budget, setBudget] = useState(50000);
   const [planResult, setPlanResult] = useState<PlanResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [hasLoadedPlan, setHasLoadedPlan] = useState(false);
 
   // Load previous plan if exists
   useEffect(() => {
-    const latestPlan = getLatestPlan();
-    if (latestPlan) {
-      setPlanResult(latestPlan);
-      setDestinations(latestPlan.destinations);
-      setTransport(latestPlan.transport);
-      setBudget(latestPlan.budget);
+    if (!hasLoadedPlan) {
+      const latestPlan = getLatestPlan();
+      if (latestPlan) {
+        setPlanResult(latestPlan);
+        setDestinations(latestPlan.destinations);
+        setTransport(latestPlan.transport);
+        setBudget(latestPlan.budget);
+        setHasLoadedPlan(true);
+      }
     }
-  }, [getLatestPlan]);
+  }, [getLatestPlan, hasLoadedPlan]);
+
+  const createNewPlan = () => {
+    setPlanResult(null);
+    setDestinations([{ id: Date.now().toString(), name: "", time: "09:00" }]);
+    setTransport("bus");
+    setBudget(50000);
+    setHasLoadedPlan(true);
+  };
 
   const addDestination = () => {
     const lastTime = destinations[destinations.length - 1]?.time || "09:00";
@@ -377,11 +389,15 @@ function PlannerContent() {
                 {/* Results */}
                 {planResult ? (
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                       <CardTitle className="flex items-center gap-2">
                         <Route className="h-5 w-5" />
                         Таны төлөвлөгөө
                       </CardTitle>
+                      <Button variant="outline" size="sm" onClick={createNewPlan}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Шинэ төлөвлөгөө
+                      </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Summary */}
