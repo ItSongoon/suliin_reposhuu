@@ -45,7 +45,7 @@ function BusinessAuthForm() {
 
     const success = await login(loginRegister, loginPassword);
     if (success) {
-      router.push("/"); // TODO: redirect to /partner/dashboard
+      router.push("/partner/dashboard");
     } else {
       setError("Регистрийн дугаар эсвэл нууц үг буруу байна.");
     }
@@ -85,7 +85,7 @@ function BusinessAuthForm() {
     try {
       const success = await register(registerData);
       if (success) {
-        router.push("/"); // TODO: redirect to /partner/dashboard
+        router.push("/partner/dashboard");
       }
     } catch (err: any) {
       setError(err.message || "Бүртгүүлэхэд алдаа гарлаа. Та дахин оролдоно уу.");

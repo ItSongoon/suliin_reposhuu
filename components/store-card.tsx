@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Star, Clock } from "lucide-react";
+import { MapPin, Star, Clock, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Store } from "@/lib/types";
 
 interface StoreCardProps {
@@ -26,7 +27,7 @@ export function StoreCard({ store }: StoreCardProps) {
 
   return (
     <Link href={`/stores/${store.id}`}>
-      <Card className="group h-full overflow-hidden transition-all hover:shadow-lg hover:border-primary">
+      <Card className="group h-full overflow-hidden transition-all hover:shadow-lg hover:border-primary p-0 gap-0">
         <div className="relative h-40 bg-secondary overflow-hidden">
           {store.image ? (
             <Image
@@ -83,6 +84,14 @@ export function StoreCard({ store }: StoreCardProps) {
               </div>
             )}
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-4 w-full rounded-full gap-2 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors"
+          >
+            Зочлох
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </CardContent>
       </Card>
     </Link>

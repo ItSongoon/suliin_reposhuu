@@ -45,7 +45,33 @@ function StoresContent() {
       }
       const response = await fetch(url);
       const data = await response.json();
-      setStores(data.stores);
+      let allStores: Store[] = data.stores ?? [];
+
+      // Partner businesses from localStorage
+      const bizDb = localStorage.getItem("zamzuur_business_db");
+      if (bizDb) {
+        const businesses = JSON.parse(bizDb);
+        const bizStores: Store[] = businesses.map((b: any) => ({
+          id: b.id,
+          name: b.name,
+          category: b.category,
+          address: b.address,
+          lat: 47.9184,
+          lng: 106.9177,
+          rating: 5,
+          openTime: b.openTime,
+          closeTime: b.closeTime,
+          phone: b.phone,
+          image: "",
+        }));
+        // Filter by category if needed
+        const filtered = selectedCategory === "all"
+          ? bizStores
+          : bizStores.filter(s => s.category === selectedCategory);
+        allStores = [...allStores, ...filtered];
+      }
+
+      setStores(allStores);
       setCategories(data.categories);
     } catch (error) {
       console.error("Failed to fetch stores:", error);

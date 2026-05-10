@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
-import productsData from "@/data/products.json";
+import { promises as fs } from "fs";
+import path from "path";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const storeId = searchParams.get("storeId");
 
-  let products = productsData.products;
+  const raw = await fs.readFile(path.join(process.cwd(), "data", "products.json"), "utf-8");
+  const data = JSON.parse(raw);
+  let products = data.products ?? data;
 
   if (storeId) {
-    products = products.filter((p) => p.storeId === storeId);
+    products = products.filter((p: any) => p.storeId === storeId);
   }
 
   return NextResponse.json({ products });
